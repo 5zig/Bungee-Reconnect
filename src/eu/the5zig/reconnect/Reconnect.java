@@ -110,7 +110,7 @@ public class Reconnect extends Plugin implements Listener {
 			return false;
 		}
 		ServerReconnectEvent event = getProxy().getPluginManager().callEvent(new ServerReconnectEvent(user, server.getInfo()));
-		return event.isCancelled();
+		return !event.isCancelled();
 	}
 
 	/**
