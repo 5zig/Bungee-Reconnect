@@ -1,11 +1,15 @@
 package eu.the5zig.reconnect;
 
-import eu.the5zig.reconnect.net.BasicChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.util.internal.PlatformDependent;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import net.md_5.bungee.BungeeServerInfo;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
@@ -15,9 +19,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.packet.KeepAlive;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import eu.the5zig.reconnect.net.BasicChannelInitializer;
 
 public class ReconnectTask {
 
@@ -75,7 +77,7 @@ public class ReconnectTask {
 		}
 
 		// Establish connection to the server.
-		ChannelInitializer initializer = new BasicChannelInitializer(bungee, user, target);
+		ChannelInitializer<Channel> initializer = new BasicChannelInitializer(bungee, user, target);
 		ChannelFutureListener listener = future -> {
 			if (future.isSuccess()) {
 				// If reconnected successfully, remove from map and send another fancy title.

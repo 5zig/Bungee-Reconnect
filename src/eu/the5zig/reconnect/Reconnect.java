@@ -31,12 +31,12 @@ public class Reconnect extends Plugin implements Listener {
 	private int maxReconnectTries = 20;
 	private int reconnectMillis = 1000;
 	private int reconnectTimeout = 5000;
-	private List<String> ignoredServers = new ArrayList<>();
+	private List<String> ignoredServers = new ArrayList<String>();
 
 	/**
 	 * A HashMap containing all reconnect tasks.
 	 */
-	private HashMap<UUID, ReconnectTask> reconnectTasks = new HashMap<>();
+	private HashMap<UUID, ReconnectTask> reconnectTasks = new HashMap<UUID, ReconnectTask>();
 
 	@Override
 	public void onEnable() {

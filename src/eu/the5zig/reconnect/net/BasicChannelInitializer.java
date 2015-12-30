@@ -12,7 +12,7 @@ import net.md_5.bungee.protocol.MinecraftDecoder;
 import net.md_5.bungee.protocol.MinecraftEncoder;
 import net.md_5.bungee.protocol.Protocol;
 
-public class BasicChannelInitializer extends ChannelInitializer {
+public class BasicChannelInitializer extends ChannelInitializer<Channel> {
 
 	private final ProxyServer bungee;
 	private final UserConnection user;
