@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import net.md_5.bungee.BungeeServerInfo;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -72,8 +74,12 @@ public class ReconnectTask {
 
 		tries++;
 		// Send fancy Title
-		if (!Reconnect.getInstance().getConnectingText().isEmpty()) {
+		if (!Reconnect.getInstance().getReconnectingTitle().isEmpty()) {
 			createReconnectTitle().send(user);
+		}
+		
+		if (!Reconnect.getInstance().getReconnectingActionBar().isEmpty()) {
+			sendReconnectActionBar(user);
 		}
 
 		// Establish connection to the server.
@@ -83,8 +89,12 @@ public class ReconnectTask {
 				// If reconnected successfully, remove from map and send another fancy title.
 				Reconnect.getInstance().cancelReconnectTask(user.getUniqueId());
 
-				if (!Reconnect.getInstance().getConnectingText().isEmpty()) {
+				if (!Reconnect.getInstance().getConnectingTitle().isEmpty()) {
 					createConnectingTitle().send(user);
+				}
+				
+				if (!Reconnect.getInstance().getConnectingActionBar().isEmpty()) {
+					sendConnectActionBar(user);
 				}
 			} else {
 				future.channel().close();
@@ -119,17 +129,20 @@ public class ReconnectTask {
 	private Title createReconnectTitle() {
 		Title title = ProxyServer.getInstance().createTitle();
 		title.title(EMPTY);
-		String dots = "";
-		for (int i = 0, max = tries % 4; i < max; i++) {
-			dots += ".";
-		}
-		title.subTitle(new TextComponent(Reconnect.getInstance().getReconnectText() + dots));
+		title.subTitle(new TextComponent(ChatColor.translateAlternateColorCodes('&', Reconnect.getInstance().getReconnectingTitle()).replace("{%dots%}", getDots())));
 		// Stay at least as long as the longest possible connect-time can be.
 		title.stay((Reconnect.getInstance().getReconnectMillis() + Reconnect.getInstance().getReconnectTimeout() + 1000) / 1000 * 20);
 		title.fadeIn(0);
 		title.fadeOut(0);
 
 		return title;
+	}
+	
+	/**
+	 * Sends an Action Bar Message containing the reconnect-text to the player.
+	 */
+	private void sendReconnectActionBar(UserConnection user) {
+		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', Reconnect.getInstance().getReconnectingActionBar()).replace("{%dots%}", getDots())));
 	}
 
 	/**
@@ -140,12 +153,32 @@ public class ReconnectTask {
 	private Title createConnectingTitle() {
 		Title title = ProxyServer.getInstance().createTitle();
 		title.title(EMPTY);
-		title.subTitle(new TextComponent(Reconnect.getInstance().getConnectingText()));
+		title.subTitle(new TextComponent(ChatColor.translateAlternateColorCodes('&', Reconnect.getInstance().getConnectingTitle())));
 		title.stay(20);
 		title.fadeIn(10);
 		title.fadeOut(10);
 
 		return title;
+	}
+	
+	/**
+	 * Sends an Action Bar Message containing the connect-text to the player.
+	 */
+	private void sendConnectActionBar(UserConnection user) {
+		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', Reconnect.getInstance().getConnectingActionBar())));
+	}
+	
+	/**
+	 * @return a String that is made of dots for the "dots animation".
+	 */
+	private String getDots() {
+		String dots = "";
+		
+		for (int i = 0, max = tries % 4; i < max; i++) {
+			dots += ".";
+		}
+		
+		return dots;
 	}
 
 }

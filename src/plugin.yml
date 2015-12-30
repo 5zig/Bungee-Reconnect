@@ -1,4 +1,5 @@
 name: Reconnect
-main: eu.the5zig.reconnect.Reconnect
 version: 1.0
-author: 5zig
+main: eu.the5zig.reconnect.Reconnect
+author: 5zig (Development) and Krymonota (Contribution)
+website: https://github.com/5zig/Bungee-Reconnect

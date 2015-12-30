@@ -26,8 +26,10 @@ public class Reconnect extends Plugin implements Listener {
 
 	private static Reconnect instance;
 
-	private String reconnectText = "Reconnecting";
-	private String connectingText = "Connecting";
+	private String reconnectingTitle = "&7Reconnecting{%dots%}";
+	private String reconnectingActionBar = "&a&lPlease do not leave! &7Reconnecting to server{%dots%}";
+	private String connectingTitle = "&aConnecting..";
+	private String connectingActionBar = "&7Connecting to server..";
 	private int maxReconnectTries = 20;
 	private int reconnectMillis = 1000;
 	private int reconnectTimeout = 5000;
@@ -60,8 +62,10 @@ public class Reconnect extends Plugin implements Listener {
 			File configFile = new File(getDataFolder(), "config.yml");
 			if (configFile.exists()) {
 				Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-				reconnectText = configuration.getString("reconnect-text", reconnectText);
-				connectingText = configuration.getString("connecting-text", connectingText);
+				reconnectingTitle = configuration.getString("reconnecting-text.title", reconnectingTitle);
+				reconnectingActionBar = configuration.getString("reconnecting-text.actionbar", reconnectingActionBar);
+				connectingTitle = configuration.getString("connecting-text.title", connectingTitle);
+				connectingActionBar = configuration.getString("connecting-text.actionbar", connectingActionBar);
 				maxReconnectTries = Math.max(configuration.getInt("max-reconnect-tries", maxReconnectTries), 1);
 				reconnectMillis = Math.max(configuration.getInt("reconnect-time", reconnectMillis), 0);
 				reconnectTimeout = Math.max(configuration.getInt("reconnect-timeout", reconnectTimeout), 1000);
@@ -173,12 +177,20 @@ public class Reconnect extends Plugin implements Listener {
 		return reconnectTasks.containsKey(uuid);
 	}
 
-	public String getReconnectText() {
-		return reconnectText;
+	public String getReconnectingTitle() {
+		return reconnectingTitle;
+	}
+	
+	public String getReconnectingActionBar() {
+		return reconnectingActionBar;
 	}
 
-	public String getConnectingText() {
-		return connectingText;
+	public String getConnectingTitle() {
+		return connectingTitle;
+	}
+	
+	public String getConnectingActionBar() {
+		return connectingActionBar;
 	}
 
 	public int getMaxReconnectTries() {
