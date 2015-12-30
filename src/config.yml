@@ -1,0 +1,26 @@
+# Reconnect --- config file
+# In this file, you can setup some basic settings for the plugin.
+
+# The text that should be displayed as a subtitle, when the plugin is trying to reconnect a player.
+# Leave empty if you don't wish any title to be displayed.
+reconnect-text: "Reconnecting"
+
+# The text that should be displayed as a subtitle, when the plugin managed to establish a connection to
+# the previous server and now connects the player to it.
+# Leave empty if you don't wish any title to be displayed.
+connecting-text: "Connecting"
+
+# The maximum amount of reconnect tries the plugin should make, before either connecting the player
+# to your fallback-server or disconnecting him. This value cannot be less than 1.
+max-reconnect-tries: 20
+
+# The amount of milliseconds the plugin should wait before making a new reconnect try. This value
+# cannot be less than zero.
+reconnect-time: 1000
+
+# The amount of milliseconds the plugin should wait for a reply from the previous server, until it
+# decides to abort that reconnect try. This value cannot be less than 1000.
+reconnect-timeout: 5000
+
+# A List containing all servers that don't allow automatic reconnecting.
+ignored-servers: [dummy, dummy2]
