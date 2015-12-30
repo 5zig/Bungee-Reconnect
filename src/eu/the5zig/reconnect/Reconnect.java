@@ -132,7 +132,7 @@ public class Reconnect extends Plugin implements Listener {
 	 */
 	public void reconnectIfOnline(UserConnection user, ServerConnection server) {
 		if (isUserOnline(user)) {
-			if (!isReconnecting(user.getUniqueId())) {
+			if (!user.getPendingConnects().contains(server.getInfo())) {
 				reconnect(user, server);
 			}
 		} else {
