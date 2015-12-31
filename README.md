@@ -16,6 +16,11 @@ Bungee-Reconnect provides a [**ServerReconnectEvent**](src/eu/the5zig/reconnect/
 If you're a developer and want to cancel the reconnect-process for any reason, you can just cancel this event.
 
 
+Other..
+------
+Officially tested with **BungeeCord Build #1093**.
+
+
 Useful Links..
 ------
 - [BungeeCord](https://www.spigotmc.org/wiki/bungeecord/)
