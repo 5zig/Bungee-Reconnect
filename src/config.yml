@@ -1,27 +1,27 @@
 # Reconnect --- config file
 # In this file, you can setup some basic settings for the plugin.
 
+# The text that should be displayed, when the plugin is trying to reconnect a player.
+# Leave empty if you don't wish any title or action bar message to be displayed.
 reconnecting-text:
   # You can add animated dots to the reconnecting texts by using the {%dots%} variable.
-  
-  # The text that should be displayed as a subtitle, when the plugin is trying to reconnect a player.
-  # Leave empty if you don't wish any title to be displayed.
+
   title: "&7Reconnecting{%dots%}"
-  
-  # The text that should be displayed as an action bar message, when the plugin is trying to reconnect a player.
-  # Leave empty if you don't wish any chat messages to be displayed.
   actionbar: "&a&lPlease do not leave! &7Reconnecting to server{%dots%}"
 
+# The text that should be displayed, when the plugin managed to establish a connection to
+# the previous server and now connects the player to it.
+# Leave empty if you don't wish any title or action bar message to be displayed.
 connecting-text:
-  # The text that should be displayed as a subtitle, when the plugin managed to establish a connection to
-  # the previous server and now connects the player to it.
-  # Leave empty if you don't wish any title to be displayed.
   title: "&aConnecting.."
-  
-  # The text that should be displayed as an action bar message, when the plugin managed to establish a connection to
-  # the previous server and now connects the player to it.
-  # Leave empty if you don't wish any title to be displayed.
-  actionbar: "&7Connecting to server.."
+  actionbar: "&7Connecting you to the server.."
+
+# The text that should be displayed, when the plugin didn't manage to etablish
+# a connection to the previous server and connected the player to the fallback server.
+# Leave empty if you don't wish any title or action bar message to be displayed.
+failed-text:
+  title: "&cReconnecting failed!"
+  actionbar: "&eYou have been moved to the fallback server!"
 
 
 # The maximum amount of reconnect tries the plugin should make, before either connecting the player

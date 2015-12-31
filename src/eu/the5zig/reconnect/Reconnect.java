@@ -1,10 +1,12 @@
 package eu.the5zig.reconnect;
 
 import com.google.common.io.ByteStreams;
+
 import eu.the5zig.reconnect.api.ServerReconnectEvent;
 import eu.the5zig.reconnect.net.ReconnectBridge;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -29,7 +31,9 @@ public class Reconnect extends Plugin implements Listener {
 	private String reconnectingTitle = "&7Reconnecting{%dots%}";
 	private String reconnectingActionBar = "&a&lPlease do not leave! &7Reconnecting to server{%dots%}";
 	private String connectingTitle = "&aConnecting..";
-	private String connectingActionBar = "&7Connecting to server..";
+	private String connectingActionBar = "&7Connecting you to the server..";
+	private String failedTitle = "&cReconnecting failed!";
+	private String failedActionBar = "&eYou have been moved to the fallback server!";
 	private int maxReconnectTries = 20;
 	private int reconnectMillis = 1000;
 	private int reconnectTimeout = 5000;
@@ -66,6 +70,8 @@ public class Reconnect extends Plugin implements Listener {
 				reconnectingActionBar = configuration.getString("reconnecting-text.actionbar", reconnectingActionBar);
 				connectingTitle = configuration.getString("connecting-text.title", connectingTitle);
 				connectingActionBar = configuration.getString("connecting-text.actionbar", connectingActionBar);
+				failedTitle = configuration.getString("failed-text.title", failedTitle);
+				failedActionBar = configuration.getString("failed-text.actionbar", failedActionBar);
 				maxReconnectTries = Math.max(configuration.getInt("max-reconnect-tries", maxReconnectTries), 1);
 				reconnectMillis = Math.max(configuration.getInt("reconnect-time", reconnectMillis), 0);
 				reconnectTimeout = Math.max(configuration.getInt("reconnect-timeout", reconnectTimeout), 1000);
@@ -178,19 +184,27 @@ public class Reconnect extends Plugin implements Listener {
 	}
 
 	public String getReconnectingTitle() {
-		return reconnectingTitle;
+		return ChatColor.translateAlternateColorCodes('&', reconnectingTitle);
 	}
 	
 	public String getReconnectingActionBar() {
-		return reconnectingActionBar;
+		return ChatColor.translateAlternateColorCodes('&', reconnectingActionBar);
 	}
 
 	public String getConnectingTitle() {
-		return connectingTitle;
+		return ChatColor.translateAlternateColorCodes('&', connectingTitle);
 	}
 	
 	public String getConnectingActionBar() {
-		return connectingActionBar;
+		return ChatColor.translateAlternateColorCodes('&', connectingActionBar);
+	}
+	
+	public String getFailedTitle() {
+		return ChatColor.translateAlternateColorCodes('&', failedTitle);
+	}
+	
+	public String getFailedActionBar() {
+		return ChatColor.translateAlternateColorCodes('&', failedActionBar);
 	}
 
 	public int getMaxReconnectTries() {
