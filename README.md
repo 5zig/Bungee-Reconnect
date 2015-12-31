@@ -12,7 +12,7 @@ Bungee-Reconnect is a **BungeeCord plugin**! Just put it into the BungeeCord plu
 
 API
 ------
-Bungee-Reconnect provides a [**ServerReconnectEvent**](https://github.com/5zig/Bungee-Reconnect/blob/master/src/eu/the5zig/reconnect/api/ServerReconnectEvent.java).
+Bungee-Reconnect provides a [**ServerReconnectEvent**](src/eu/the5zig/reconnect/api/ServerReconnectEvent.java).
 If you're a developer and want to cancel the reconnect-process for any reason, you can just cancel this event.
 
 
@@ -20,3 +20,11 @@ Useful Links..
 ------
 - [BungeeCord](https://www.spigotmc.org/wiki/bungeecord/)
 - [Plugin Page](...)
+- [Raw Concept](https://www.spigotmc.org/threads/how-to-create-a-fake-keep-alive-server.111825/#post-1203686)
+
+
+Credits
+------
+- Development: [5zig](https://github.com/5zig)
+- Contribution: [Krymonota](https://github.com/Krymonota)
+- Inspiration: [SpigotMC Forum Thread](https://www.spigotmc.org/threads/restart-plugin-built-into-spigot-pls-help-4-diamond.111789/)
