@@ -1,7 +1,6 @@
 package eu.the5zig.reconnect;
 
 import com.google.common.io.ByteStreams;
-
 import eu.the5zig.reconnect.api.ServerReconnectEvent;
 import eu.the5zig.reconnect.net.ReconnectBridge;
 import net.md_5.bungee.ServerConnection;
@@ -37,12 +36,12 @@ public class Reconnect extends Plugin implements Listener {
 	private int maxReconnectTries = 20;
 	private int reconnectMillis = 1000;
 	private int reconnectTimeout = 5000;
-	private List<String> ignoredServers = new ArrayList<String>();
+	private List<String> ignoredServers = new ArrayList<>();
 
 	/**
 	 * A HashMap containing all reconnect tasks.
 	 */
-	private HashMap<UUID, ReconnectTask> reconnectTasks = new HashMap<UUID, ReconnectTask>();
+	private HashMap<UUID, ReconnectTask> reconnectTasks = new HashMap<>();
 
 	@Override
 	public void onEnable() {
@@ -129,7 +128,7 @@ public class Reconnect extends Plugin implements Listener {
 	 * @param user The User that should be checked.
 	 * @return true, if the UserConnection is still online.
 	 */
-	private boolean isUserOnline(UserConnection user) {
+	public boolean isUserOnline(UserConnection user) {
 		return getProxy().getPlayer(user.getUniqueId()) != null;
 	}
 
@@ -142,7 +141,7 @@ public class Reconnect extends Plugin implements Listener {
 	 */
 	public void reconnectIfOnline(UserConnection user, ServerConnection server) {
 		if (isUserOnline(user)) {
-			if (!user.getPendingConnects().contains(server.getInfo())) {
+			if (!isReconnecting(user.getUniqueId())) {
 				reconnect(user, server);
 			}
 		} else {
