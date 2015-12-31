@@ -1,10 +1,12 @@
 package eu.the5zig.reconnect;
 
 import com.google.common.io.ByteStreams;
+
 import eu.the5zig.reconnect.api.ServerReconnectEvent;
 import eu.the5zig.reconnect.net.ReconnectBridge;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -26,17 +28,21 @@ public class Reconnect extends Plugin implements Listener {
 
 	private static Reconnect instance;
 
-	private String reconnectText = "Reconnecting";
-	private String connectingText = "Connecting";
+	private String reconnectingTitle = "&7Reconnecting{%dots%}";
+	private String reconnectingActionBar = "&a&lPlease do not leave! &7Reconnecting to server{%dots%}";
+	private String connectingTitle = "&aConnecting..";
+	private String connectingActionBar = "&7Connecting you to the server..";
+	private String failedTitle = "&cReconnecting failed!";
+	private String failedActionBar = "&eYou have been moved to the fallback server!";
 	private int maxReconnectTries = 20;
 	private int reconnectMillis = 1000;
 	private int reconnectTimeout = 5000;
-	private List<String> ignoredServers = new ArrayList<>();
+	private List<String> ignoredServers = new ArrayList<String>();
 
 	/**
 	 * A HashMap containing all reconnect tasks.
 	 */
-	private HashMap<UUID, ReconnectTask> reconnectTasks = new HashMap<>();
+	private HashMap<UUID, ReconnectTask> reconnectTasks = new HashMap<UUID, ReconnectTask>();
 
 	@Override
 	public void onEnable() {
@@ -60,8 +66,12 @@ public class Reconnect extends Plugin implements Listener {
 			File configFile = new File(getDataFolder(), "config.yml");
 			if (configFile.exists()) {
 				Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-				reconnectText = configuration.getString("reconnect-text", reconnectText);
-				connectingText = configuration.getString("connecting-text", connectingText);
+				reconnectingTitle = configuration.getString("reconnecting-text.title", reconnectingTitle);
+				reconnectingActionBar = configuration.getString("reconnecting-text.actionbar", reconnectingActionBar);
+				connectingTitle = configuration.getString("connecting-text.title", connectingTitle);
+				connectingActionBar = configuration.getString("connecting-text.actionbar", connectingActionBar);
+				failedTitle = configuration.getString("failed-text.title", failedTitle);
+				failedActionBar = configuration.getString("failed-text.actionbar", failedActionBar);
 				maxReconnectTries = Math.max(configuration.getInt("max-reconnect-tries", maxReconnectTries), 1);
 				reconnectMillis = Math.max(configuration.getInt("reconnect-time", reconnectMillis), 0);
 				reconnectTimeout = Math.max(configuration.getInt("reconnect-timeout", reconnectTimeout), 1000);
@@ -110,7 +120,7 @@ public class Reconnect extends Plugin implements Listener {
 			return false;
 		}
 		ServerReconnectEvent event = getProxy().getPluginManager().callEvent(new ServerReconnectEvent(user, server.getInfo()));
-		return event.isCancelled();
+		return !event.isCancelled();
 	}
 
 	/**
@@ -132,7 +142,7 @@ public class Reconnect extends Plugin implements Listener {
 	 */
 	public void reconnectIfOnline(UserConnection user, ServerConnection server) {
 		if (isUserOnline(user)) {
-			if (!isReconnecting(user.getUniqueId())) {
+			if (!user.getPendingConnects().contains(server.getInfo())) {
 				reconnect(user, server);
 			}
 		} else {
@@ -173,12 +183,28 @@ public class Reconnect extends Plugin implements Listener {
 		return reconnectTasks.containsKey(uuid);
 	}
 
-	public String getReconnectText() {
-		return reconnectText;
+	public String getReconnectingTitle() {
+		return ChatColor.translateAlternateColorCodes('&', reconnectingTitle);
+	}
+	
+	public String getReconnectingActionBar() {
+		return ChatColor.translateAlternateColorCodes('&', reconnectingActionBar);
 	}
 
-	public String getConnectingText() {
-		return connectingText;
+	public String getConnectingTitle() {
+		return ChatColor.translateAlternateColorCodes('&', connectingTitle);
+	}
+	
+	public String getConnectingActionBar() {
+		return ChatColor.translateAlternateColorCodes('&', connectingActionBar);
+	}
+	
+	public String getFailedTitle() {
+		return ChatColor.translateAlternateColorCodes('&', failedTitle);
+	}
+	
+	public String getFailedActionBar() {
+		return ChatColor.translateAlternateColorCodes('&', failedActionBar);
 	}
 
 	public int getMaxReconnectTries() {

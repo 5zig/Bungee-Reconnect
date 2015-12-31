@@ -12,7 +12,7 @@ import net.md_5.bungee.protocol.MinecraftDecoder;
 import net.md_5.bungee.protocol.MinecraftEncoder;
 import net.md_5.bungee.protocol.Protocol;
 
-public class BasicChannelInitializer extends ChannelInitializer {
+public class BasicChannelInitializer extends ChannelInitializer<Channel> {
 
 	private final ProxyServer bungee;
 	private final UserConnection user;
@@ -28,8 +28,7 @@ public class BasicChannelInitializer extends ChannelInitializer {
 	protected void initChannel(Channel ch) throws Exception {
 		PipelineUtils.BASE.initChannel(ch);
 		ch.pipeline().addAfter(PipelineUtils.FRAME_DECODER, PipelineUtils.PACKET_DECODER, new MinecraftDecoder(Protocol.HANDSHAKE, false, user.getPendingConnection().getVersion()));
-		ch.pipeline().addAfter(PipelineUtils.FRAME_PREPENDER, PipelineUtils.PACKET_ENCODER,
-				new MinecraftEncoder(Protocol.HANDSHAKE, false, user.getPendingConnection().getVersion()));
+		ch.pipeline().addAfter(PipelineUtils.FRAME_PREPENDER, PipelineUtils.PACKET_ENCODER, new MinecraftEncoder(Protocol.HANDSHAKE, false, user.getPendingConnection().getVersion()));
 		ch.pipeline().get(HandlerBoss.class).setHandler(new ServerConnector(bungee, user, target));
 	}
 

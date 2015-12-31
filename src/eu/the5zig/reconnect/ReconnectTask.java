@@ -1,23 +1,26 @@
 package eu.the5zig.reconnect;
 
-import eu.the5zig.reconnect.net.BasicChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.util.internal.PlatformDependent;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import net.md_5.bungee.BungeeServerInfo;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.packet.KeepAlive;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import eu.the5zig.reconnect.net.BasicChannelInitializer;
 
 public class ReconnectTask {
 
@@ -53,6 +56,18 @@ public class ReconnectTask {
 				server.setObsolete(true);
 				user.connectNow(def);
 				user.sendMessage(bungee.getTranslation("server_went_down"));
+				
+				// Send fancy title if it's enabled in config, otherwise reset the connecting title.
+				if (!Reconnect.getInstance().getFailedTitle().isEmpty())
+					user.sendTitle(createFailedTitle());
+				else
+					user.sendTitle(ProxyServer.getInstance().createTitle().reset());
+				
+				// Send fancy action bar message if it's enabled in config, otherwise reset the connecting action bar message.
+				if (!Reconnect.getInstance().getFailedActionBar().isEmpty())
+					sendFailedActionBar(user);
+				else
+					user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
 			} else {
 				// Otherwise, disconnect the user with a "Lost Connection"-message.
 				user.disconnect(bungee.getTranslation("lost_connection"));
@@ -69,20 +84,32 @@ public class ReconnectTask {
 		user.getPendingConnects().add(target);
 
 		tries++;
+		
 		// Send fancy Title
-		if (!Reconnect.getInstance().getConnectingText().isEmpty()) {
+		if (!Reconnect.getInstance().getReconnectingTitle().isEmpty()) {
 			createReconnectTitle().send(user);
+		}
+		
+		// Send fancy Action Bar Message
+		if (!Reconnect.getInstance().getReconnectingActionBar().isEmpty()) {
+			sendReconnectActionBar(user);
 		}
 
 		// Establish connection to the server.
-		ChannelInitializer initializer = new BasicChannelInitializer(bungee, user, target);
+		ChannelInitializer<Channel> initializer = new BasicChannelInitializer(bungee, user, target);
 		ChannelFutureListener listener = future -> {
 			if (future.isSuccess()) {
 				// If reconnected successfully, remove from map and send another fancy title.
 				Reconnect.getInstance().cancelReconnectTask(user.getUniqueId());
 
-				if (!Reconnect.getInstance().getConnectingText().isEmpty()) {
+				// Send fancy Title
+				if (!Reconnect.getInstance().getConnectingTitle().isEmpty()) {
 					createConnectingTitle().send(user);
+				}
+				
+				// Send fancy Action Bar Message
+				if (!Reconnect.getInstance().getConnectingActionBar().isEmpty()) {
+					sendConnectActionBar(user);
 				}
 			} else {
 				future.channel().close();
@@ -117,17 +144,20 @@ public class ReconnectTask {
 	private Title createReconnectTitle() {
 		Title title = ProxyServer.getInstance().createTitle();
 		title.title(EMPTY);
-		String dots = "";
-		for (int i = 0, max = tries % 4; i < max; i++) {
-			dots += ".";
-		}
-		title.subTitle(new TextComponent(Reconnect.getInstance().getReconnectText() + dots));
+		title.subTitle(new TextComponent(Reconnect.getInstance().getReconnectingTitle().replace("{%dots%}", getDots())));
 		// Stay at least as long as the longest possible connect-time can be.
 		title.stay((Reconnect.getInstance().getReconnectMillis() + Reconnect.getInstance().getReconnectTimeout() + 1000) / 1000 * 20);
 		title.fadeIn(0);
 		title.fadeOut(0);
 
 		return title;
+	}
+	
+	/**
+	 * Sends an Action Bar Message containing the reconnect-text to the player.
+	 */
+	private void sendReconnectActionBar(UserConnection user) {
+		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Reconnect.getInstance().getReconnectingActionBar().replace("{%dots%}", getDots())));
 	}
 
 	/**
@@ -138,12 +168,59 @@ public class ReconnectTask {
 	private Title createConnectingTitle() {
 		Title title = ProxyServer.getInstance().createTitle();
 		title.title(EMPTY);
-		title.subTitle(new TextComponent(Reconnect.getInstance().getConnectingText()));
+		title.subTitle(new TextComponent(Reconnect.getInstance().getConnectingTitle()));
 		title.stay(20);
 		title.fadeIn(10);
 		title.fadeOut(10);
 
 		return title;
+	}
+	
+	/**
+	 * Sends an Action Bar Message containing the connect-text to the player.
+	 */
+	private void sendConnectActionBar(UserConnection user) {
+		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Reconnect.getInstance().getConnectingActionBar()));
+	}
+	
+	/**
+	 * Created a Title containing the failed-text.
+	 * 
+	 * @return a Title that can be send to the player.
+	 */
+	private Title createFailedTitle() {
+		Title title = ProxyServer.getInstance().createTitle();
+		title.title(EMPTY);
+		title.subTitle(new TextComponent(Reconnect.getInstance().getFailedTitle()));
+		title.stay(80);
+		title.fadeIn(10);
+		title.fadeOut(10);
+
+		return title;
+	}
+	
+	/**
+	 * Sends an Action Bar Message containing the failed-text to the player.
+	 */
+	
+	private void sendFailedActionBar(UserConnection user) {
+		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Reconnect.getInstance().getFailedActionBar()));
+		
+		// Send an empty action bar message after 5 seconds to make it disappear again.
+		bungee.getScheduler().schedule(Reconnect.getInstance(), () -> user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("")), 5L, TimeUnit.SECONDS);
+	}
+	
+	/**
+	 * @return a String that is made of dots for the "dots animation".
+	 */
+	private String getDots() {
+		String dots = "";
+		
+		for (int i = 0, max = tries % 4; i < max; i++) {
+			dots += ".";
+		}
+		
+		return dots;
 	}
 
 }

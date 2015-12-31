@@ -101,8 +101,7 @@ public class ReconnectBridge extends DownstreamBridge {
 			def = null;
 		}
 		// Call ServerKickEvent
-		ServerKickEvent event = bungee.getPluginManager().callEvent(
-				new ServerKickEvent(user, server.getInfo(), ComponentSerializer.parse(kick.getMessage()), def, ServerKickEvent.State.CONNECTED));
+		ServerKickEvent event = bungee.getPluginManager().callEvent(new ServerKickEvent(user, server.getInfo(), ComponentSerializer.parse(kick.getMessage()), def, ServerKickEvent.State.CONNECTED));
 		if (event.isCancelled() && event.getCancelServer() != null) {
 			user.connectNow(event.getCancelServer());
 		} else {
