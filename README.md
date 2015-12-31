@@ -24,7 +24,7 @@ Officially tested with **BungeeCord Build #1093**.
 Useful Links..
 ------
 - [BungeeCord](https://www.spigotmc.org/wiki/bungeecord/)
-- [Plugin Page](...)
+- [Plugin Page](https://www.spigotmc.org/resources/bungee-reconnect.16429/)
 - [Raw Concept](https://www.spigotmc.org/threads/how-to-create-a-fake-keep-alive-server.111825/#post-1203686)
 
 
