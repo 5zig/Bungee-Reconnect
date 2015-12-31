@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ReconnectTask {
 
-	private static final Random random = new Random();
+	private static final Random RANDOM = new Random();
 	private static final TextComponent EMPTY = new TextComponent("");
 
 	private ProxyServer bungee;
@@ -55,13 +55,13 @@ public class ReconnectTask {
 				server.setObsolete(true);
 				user.connectNow(def);
 				user.sendMessage(bungee.getTranslation("server_went_down"));
-				
+
 				// Send fancy title if it's enabled in config, otherwise reset the connecting title.
 				if (!Reconnect.getInstance().getFailedTitle().isEmpty())
 					user.sendTitle(createFailedTitle());
 				else
 					user.sendTitle(ProxyServer.getInstance().createTitle().reset());
-				
+
 				// Send fancy action bar message if it's enabled in config, otherwise reset the connecting action bar message.
 				if (!Reconnect.getInstance().getFailedActionBar().isEmpty())
 					sendFailedActionBar(user);
@@ -83,12 +83,12 @@ public class ReconnectTask {
 		user.getPendingConnects().add(target);
 
 		tries++;
-		
+
 		// Send fancy Title
 		if (!Reconnect.getInstance().getReconnectingTitle().isEmpty()) {
 			createReconnectTitle().send(user);
 		}
-		
+
 		// Send fancy Action Bar Message
 		if (!Reconnect.getInstance().getReconnectingActionBar().isEmpty()) {
 			sendReconnectActionBar(user);
@@ -105,7 +105,7 @@ public class ReconnectTask {
 				if (!Reconnect.getInstance().getConnectingTitle().isEmpty()) {
 					createConnectingTitle().send(user);
 				}
-				
+
 				// Send fancy Action Bar Message
 				if (!Reconnect.getInstance().getConnectingActionBar().isEmpty()) {
 					sendConnectActionBar(user);
@@ -115,16 +115,14 @@ public class ReconnectTask {
 				user.getPendingConnects().remove(target);
 
 				// Send KeepAlive Packet so that the client won't time out.
-				user.unsafe().sendPacket(new KeepAlive(random.nextInt()));
+				user.unsafe().sendPacket(new KeepAlive(RANDOM.nextInt()));
 
 				// Schedule next reconnect.
-				bungee.getScheduler().schedule(Reconnect.getInstance(),
-						() -> bungee.getScheduler().runAsync(Reconnect.getInstance(), () -> {
-							if (Reconnect.getInstance().isUserOnline(user)) {
-								tryReconnect();
-							}
-						}),
-						Reconnect.getInstance().getReconnectMillis(), TimeUnit.MILLISECONDS);
+				bungee.getScheduler().schedule(Reconnect.getInstance(), () -> bungee.getScheduler().runAsync(Reconnect.getInstance(), () -> {
+					if (Reconnect.getInstance().isUserOnline(user)) {
+						tryReconnect();
+					}
+				}), Reconnect.getInstance().getReconnectMillis(), TimeUnit.MILLISECONDS);
 			}
 		};
 
@@ -155,7 +153,7 @@ public class ReconnectTask {
 
 		return title;
 	}
-	
+
 	/**
 	 * Sends an Action Bar Message containing the reconnect-text to the player.
 	 */
@@ -178,17 +176,17 @@ public class ReconnectTask {
 
 		return title;
 	}
-	
+
 	/**
 	 * Sends an Action Bar Message containing the connect-text to the player.
 	 */
 	private void sendConnectActionBar(UserConnection user) {
 		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Reconnect.getInstance().getConnectingActionBar()));
 	}
-	
+
 	/**
 	 * Created a Title containing the failed-text.
-	 * 
+	 *
 	 * @return a Title that can be send to the player.
 	 */
 	private Title createFailedTitle() {
@@ -201,28 +199,27 @@ public class ReconnectTask {
 
 		return title;
 	}
-	
+
 	/**
 	 * Sends an Action Bar Message containing the failed-text to the player.
 	 */
-	
 	private void sendFailedActionBar(UserConnection user) {
 		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Reconnect.getInstance().getFailedActionBar()));
-		
+
 		// Send an empty action bar message after 5 seconds to make it disappear again.
 		bungee.getScheduler().schedule(Reconnect.getInstance(), () -> user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("")), 5L, TimeUnit.SECONDS);
 	}
-	
+
 	/**
 	 * @return a String that is made of dots for the "dots animation".
 	 */
 	private String getDots() {
 		String dots = "";
-		
+
 		for (int i = 0, max = tries % 4; i < max; i++) {
 			dots += ".";
 		}
-		
+
 		return dots;
 	}
 
