@@ -1,15 +1,12 @@
 package eu.the5zig.reconnect;
 
+import eu.the5zig.reconnect.net.BasicChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.util.internal.PlatformDependent;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 import net.md_5.bungee.BungeeServerInfo;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
@@ -20,7 +17,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.packet.KeepAlive;
-import eu.the5zig.reconnect.net.BasicChannelInitializer;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class ReconnectTask {
 
@@ -115,12 +114,16 @@ public class ReconnectTask {
 				future.channel().close();
 				user.getPendingConnects().remove(target);
 
-				// Send KeepAlive Packet so that the client won't
+				// Send KeepAlive Packet so that the client won't time out.
 				user.unsafe().sendPacket(new KeepAlive(random.nextInt()));
 
 				// Schedule next reconnect.
 				bungee.getScheduler().schedule(Reconnect.getInstance(),
-						() -> bungee.getScheduler().runAsync(Reconnect.getInstance(), () -> Reconnect.getInstance().reconnectIfOnline(user, server)),
+						() -> bungee.getScheduler().runAsync(Reconnect.getInstance(), () -> {
+							if (Reconnect.getInstance().isUserOnline(user)) {
+								tryReconnect();
+							}
+						}),
 						Reconnect.getInstance().getReconnectMillis(), TimeUnit.MILLISECONDS);
 			}
 		};
