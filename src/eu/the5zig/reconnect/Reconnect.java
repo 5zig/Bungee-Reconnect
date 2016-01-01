@@ -137,6 +137,11 @@ public class Reconnect extends Plugin implements Listener {
 
 		ReconnectBridge bridge = new ReconnectBridge(bungee, user, server);
 		ch.getHandle().pipeline().get(HandlerBoss.class).setHandler(bridge);
+
+		// Cancel the reconnect task (if any exist) and clear title and action bar.
+		if (isReconnecting(user.getUniqueId())) {
+			cancelReconnectTask(user.getUniqueId());
+		}
 	}
 
 	/**
@@ -201,7 +206,10 @@ public class Reconnect extends Plugin implements Listener {
 	 * @param uuid The UniqueId of the User.
 	 */
 	void cancelReconnectTask(UUID uuid) {
-		reconnectTasks.remove(uuid);
+		ReconnectTask task = reconnectTasks.remove(uuid);
+		if (task != null && getProxy().getPlayer(uuid) != null) {
+			task.cancel();
+		}
 	}
 
 	/**

@@ -236,4 +236,15 @@ public class ReconnectTask {
 		return dots;
 	}
 
+	public void cancel() {
+		if (Reconnect.getInstance().isUserOnline(user)) {
+			if (Reconnect.getInstance().getReconnectingTitle() != null || Reconnect.getInstance().getConnectingTitle() != null) {
+				bungee.createTitle().clear().send(user);
+			}
+			if (Reconnect.getInstance().getConnectingActionBar() != null) {
+				user.sendMessage(ChatMessageType.ACTION_BAR, EMPTY);
+			}
+		}
+	}
+
 }
