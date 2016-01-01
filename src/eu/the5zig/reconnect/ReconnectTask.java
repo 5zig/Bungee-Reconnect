@@ -20,6 +20,8 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Strings;
+
 public class ReconnectTask {
 
 	private static final Random RANDOM = new Random();
@@ -65,7 +67,7 @@ public class ReconnectTask {
 				if (!Reconnect.getInstance().getFailedActionBar().isEmpty())
 					sendFailedActionBar(user);
 				else
-					user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+					user.sendMessage(ChatMessageType.ACTION_BAR, EMPTY);
 			} else {
 				// Otherwise, disconnect the user with a "Lost Connection"-message.
 				user.disconnect(bungee.getTranslation("lost_connection"));
@@ -218,7 +220,7 @@ public class ReconnectTask {
 		bungee.getScheduler().schedule(Reconnect.getInstance(), new Runnable() {
 			@Override
 			public void run() {
-				user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+				user.sendMessage(ChatMessageType.ACTION_BAR, EMPTY);
 			}
 		}, 5L, TimeUnit.SECONDS);
 	}
@@ -236,12 +238,16 @@ public class ReconnectTask {
 		return dots;
 	}
 
+	/**
+	 * Resets the title and action bar message if the player is still online
+	 */
 	public void cancel() {
 		if (Reconnect.getInstance().isUserOnline(user)) {
-			if (Reconnect.getInstance().getReconnectingTitle() != null || Reconnect.getInstance().getConnectingTitle() != null) {
-				bungee.createTitle().clear().send(user);
+			if (!Strings.isNullOrEmpty(Reconnect.getInstance().getReconnectingTitle()) || !Strings.isNullOrEmpty(Reconnect.getInstance().getConnectingTitle())) {
+				// For some reason, we have to reset and clear the title, so it completely disappears -> BungeeCord bug?
+				bungee.createTitle().reset().clear().send(user);
 			}
-			if (Reconnect.getInstance().getConnectingActionBar() != null) {
+			if (!Strings.isNullOrEmpty(Reconnect.getInstance().getConnectingActionBar())) {
 				user.sendMessage(ChatMessageType.ACTION_BAR, EMPTY);
 			}
 		}
