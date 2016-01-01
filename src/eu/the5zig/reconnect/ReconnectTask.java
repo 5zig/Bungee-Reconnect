@@ -3,6 +3,7 @@ package eu.the5zig.reconnect;
 import eu.the5zig.reconnect.net.BasicChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -96,33 +97,44 @@ public class ReconnectTask {
 
 		// Establish connection to the server.
 		ChannelInitializer<Channel> initializer = new BasicChannelInitializer(bungee, user, target);
-		ChannelFutureListener listener = future -> {
-			if (future.isSuccess()) {
-				// If reconnected successfully, remove from map and send another fancy title.
-				Reconnect.getInstance().cancelReconnectTask(user.getUniqueId());
+		ChannelFutureListener listener = new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				if (future.isSuccess()) {
+					// If reconnected successfully, remove from map and send another fancy title.
+					Reconnect.getInstance().cancelReconnectTask(user.getUniqueId());
 
-				// Send fancy Title
-				if (!Reconnect.getInstance().getConnectingTitle().isEmpty()) {
-					createConnectingTitle().send(user);
-				}
-
-				// Send fancy Action Bar Message
-				if (!Reconnect.getInstance().getConnectingActionBar().isEmpty()) {
-					sendConnectActionBar(user);
-				}
-			} else {
-				future.channel().close();
-				user.getPendingConnects().remove(target);
-
-				// Send KeepAlive Packet so that the client won't time out.
-				user.unsafe().sendPacket(new KeepAlive(RANDOM.nextInt()));
-
-				// Schedule next reconnect.
-				bungee.getScheduler().schedule(Reconnect.getInstance(), () -> bungee.getScheduler().runAsync(Reconnect.getInstance(), () -> {
-					if (Reconnect.getInstance().isUserOnline(user)) {
-						tryReconnect();
+					// Send fancy Title
+					if (!Reconnect.getInstance().getConnectingTitle().isEmpty()) {
+						createConnectingTitle().send(user);
 					}
-				}), Reconnect.getInstance().getReconnectMillis(), TimeUnit.MILLISECONDS);
+
+					// Send fancy Action Bar Message
+					if (!Reconnect.getInstance().getConnectingActionBar().isEmpty()) {
+						sendConnectActionBar(user);
+					}
+				} else {
+					future.channel().close();
+					user.getPendingConnects().remove(target);
+
+					// Send KeepAlive Packet so that the client won't time out.
+					user.unsafe().sendPacket(new KeepAlive(RANDOM.nextInt()));
+
+					// Schedule next reconnect.
+					bungee.getScheduler().schedule(Reconnect.getInstance(), new Runnable() {
+						@Override
+						public void run() {
+							bungee.getScheduler().runAsync(Reconnect.getInstance(), new Runnable() {
+								@Override
+								public void run() {
+									if (Reconnect.getInstance().isUserOnline(user)) {
+										tryReconnect();
+									}
+								}
+							});
+						}
+					}, Reconnect.getInstance().getReconnectMillis(), TimeUnit.MILLISECONDS);
+				}
 			}
 		};
 
@@ -203,11 +215,16 @@ public class ReconnectTask {
 	/**
 	 * Sends an Action Bar Message containing the failed-text to the player.
 	 */
-	private void sendFailedActionBar(UserConnection user) {
+	private void sendFailedActionBar(final UserConnection user) {
 		user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Reconnect.getInstance().getFailedActionBar()));
 
 		// Send an empty action bar message after 5 seconds to make it disappear again.
-		bungee.getScheduler().schedule(Reconnect.getInstance(), () -> user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("")), 5L, TimeUnit.SECONDS);
+		bungee.getScheduler().schedule(Reconnect.getInstance(), new Runnable() {
+			@Override
+			public void run() {
+				user.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+			}
+		}, 5L, TimeUnit.SECONDS);
 	}
 
 	/**
