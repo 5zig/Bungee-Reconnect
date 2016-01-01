@@ -1,6 +1,7 @@
 package eu.the5zig.reconnect;
 
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import eu.the5zig.reconnect.api.ServerReconnectEvent;
 import eu.the5zig.reconnect.net.ReconnectBridge;
 import net.md_5.bungee.ServerConnection;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class Reconnect extends Plugin implements Listener {
 
@@ -37,6 +39,8 @@ public class Reconnect extends Plugin implements Listener {
 	private int reconnectMillis = 1000;
 	private int reconnectTimeout = 5000;
 	private List<String> ignoredServers = new ArrayList<>();
+	private String shutdownMessage = "Server closed";
+	private Pattern shutdownPattern = null;
 
 	/**
 	 * A HashMap containing all reconnect tasks.
@@ -65,6 +69,16 @@ public class Reconnect extends Plugin implements Listener {
 			File configFile = new File(getDataFolder(), "config.yml");
 			if (configFile.exists()) {
 				Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+				int pluginConfigVersion = ConfigurationProvider.getProvider(YamlConfiguration.class).load(getResourceAsStream("config.yml")).getInt("version");
+				if (configuration.getInt("version") < pluginConfigVersion) {
+					getLogger().info("Found an old config version! Replacing with new one...");
+					File oldConfigFile = new File(getDataFolder(), "config.old.yml");
+					Files.move(configFile, oldConfigFile);
+					getLogger().info("A backup of your old config has been saved to " + oldConfigFile + "!");
+					saveDefaultConfig(configFile);
+					return;
+				}
+
 				reconnectingTitle = configuration.getString("reconnecting-text.title", reconnectingTitle);
 				reconnectingActionBar = configuration.getString("reconnecting-text.actionbar", reconnectingActionBar);
 				connectingTitle = configuration.getString("connecting-text.title", connectingTitle);
@@ -75,18 +89,36 @@ public class Reconnect extends Plugin implements Listener {
 				reconnectMillis = Math.max(configuration.getInt("reconnect-time", reconnectMillis), 0);
 				reconnectTimeout = Math.max(configuration.getInt("reconnect-timeout", reconnectTimeout), 1000);
 				ignoredServers = configuration.getStringList("ignored-servers");
+				String shutdownText = configuration.getString("shutdown.text");
+				if (shutdownText == null || shutdownText.isEmpty()) {
+					shutdownMessage = null;
+					shutdownPattern = null;
+				} else if (!configuration.getBoolean("shutdown.regex")) {
+					shutdownMessage = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', shutdownText)); // strip all color codes
+				} else {
+					try {
+						shutdownPattern = Pattern.compile(shutdownText);
+						shutdownMessage = null;
+					} catch (Exception e) {
+						getLogger().warning("Could not compile shutdown regex! Please check your config! Using default shutdown message...");
+					}
+				}
 			} else {
-				if (!configFile.createNewFile()) {
-					throw new IOException("Could not create default config!");
-				}
-				try (InputStream is = getResourceAsStream("config.yml");
-						OutputStream os = new FileOutputStream(configFile)) {
-					ByteStreams.copy(is, os);
-				}
+				saveDefaultConfig(configFile);
 			}
 		} catch (IOException e) {
 			getLogger().warning("Could not load config, using default values...");
 			e.printStackTrace();
+		}
+	}
+
+	private void saveDefaultConfig(File configFile) throws IOException {
+		if (!configFile.createNewFile()) {
+			throw new IOException("Could not create default config!");
+		}
+		try (InputStream is = getResourceAsStream("config.yml");
+				OutputStream os = new FileOutputStream(configFile)) {
+			ByteStreams.copy(is, os);
 		}
 	}
 
@@ -216,6 +248,14 @@ public class Reconnect extends Plugin implements Listener {
 
 	public int getReconnectTimeout() {
 		return reconnectTimeout;
+	}
+
+	public String getShutdownMessage() {
+		return shutdownMessage;
+	}
+
+	public Pattern getShutdownPattern() {
+		return shutdownPattern;
 	}
 
 	/**

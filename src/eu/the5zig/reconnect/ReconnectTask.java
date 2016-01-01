@@ -18,6 +18,7 @@ import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.packet.KeepAlive;
 
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -119,8 +120,11 @@ public class ReconnectTask {
 
 				// Schedule next reconnect.
 				bungee.getScheduler().schedule(Reconnect.getInstance(), () -> bungee.getScheduler().runAsync(Reconnect.getInstance(), () -> {
-					if (Reconnect.getInstance().isUserOnline(user)) {
+					// Only retry to reconnect the user if he is still online and hasn't been moved to another server.
+					if (Reconnect.getInstance().isUserOnline(user) && Objects.equals(user.getServer(), server)) {
 						tryReconnect();
+					} else {
+						Reconnect.getInstance().cancelReconnectTask(user.getUniqueId());
 					}
 				}), Reconnect.getInstance().getReconnectMillis(), TimeUnit.MILLISECONDS);
 			}

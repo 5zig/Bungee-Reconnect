@@ -1,6 +1,11 @@
 # Reconnect --- config file
 # In this file, you can setup some basic settings for the plugin.
 
+# The current version of this configuration. Do NOT change this value!
+# If the plugin uses a more recent config version, this config gets replaced by it
+# while a backup of the old config will be kept as "config.old.yml".
+version: 1
+
 # The text that should be displayed, when the plugin is trying to reconnect a player.
 # Leave empty if you don't wish any title or action bar message to be displayed.
 reconnecting-text:
@@ -13,8 +18,8 @@ reconnecting-text:
 # the previous server and now connects the player to it.
 # Leave empty if you don't wish any title or action bar message to be displayed.
 connecting-text:
-  title: "&aConnecting.."
-  actionbar: "&7Connecting you to the server.."
+  title: "&aConnecting..."
+  actionbar: "&7Connecting you to the server..."
 
 # The text that should be displayed, when the plugin didn't manage to etablish
 # a connection to the previous server and connected the player to the fallback server.
@@ -38,3 +43,15 @@ reconnect-timeout: 5000
 
 # A List containing all servers that don't allow automatic reconnecting.
 ignored-servers: [dummy, dummy2]
+
+# This block is necessary for the plugin to differentiate whether a kick happened because of a shutdown or not.
+shutdown:
+  # When regex is set to false, the kick message must be equal to the following text if the player should be reconnected to that server. (Formatting codes will be ignored though.)
+  # When regex is set to true, the regex must match the kick message if the player should be reconnected to that server.
+  # Leaving the text empty will lead the plugin to always reconnect the players, no matter what the actual kick-reason was.
+
+  # You can still use the "ServerReconnectEvent" as a plugin developer to decide on your own whether the user should be reconnected automatically
+  # or not.
+
+  text: "Server closed"
+  regex: "false"

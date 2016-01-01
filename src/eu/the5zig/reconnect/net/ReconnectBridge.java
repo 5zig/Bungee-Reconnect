@@ -5,14 +5,14 @@ import eu.the5zig.reconnect.Reconnect;
 import net.md_5.bungee.ServerConnection;
 import net.md_5.bungee.UserConnection;
 import net.md_5.bungee.Util;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.connection.CancelSendSignal;
 import net.md_5.bungee.connection.DownstreamBridge;
-import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.protocol.packet.Kick;
 
 /**
@@ -62,37 +62,6 @@ public class ReconnectBridge extends DownstreamBridge {
 	}
 
 	@Override
-	public void disconnected(ChannelWrapper channel) throws Exception {
-		// Usually, BungeeCord would disconnect the Player with a "Connection Lost" message whenever it loses
-		// the connection to the server. We are more kind and wait for the server to restart.
-		//
-		// This method is getting called always, but sometimes it is called after the user has been already disconnected,
-		// that's why we need to override the other methods as well.
-
-		// We need still to remove the User from the server, otherwise errors might occur when reconnecting.
-		server.getInfo().removePlayer(user);
-
-		// Fire ServerReconnectEvent and give plugins the possibility to cancel server reconnecting.
-		if (!Reconnect.getInstance().fireServerReconnectEvent(user, server)) {
-			// Invoke default behaviour if event has been cancelled.
-
-			// BungeeCord reconnect handling.
-			if (bungee.getReconnectHandler() != null) {
-				bungee.getReconnectHandler().setServer(user);
-			}
-			// Disconnect the User.
-			if (!server.isObsolete()) {
-				user.disconnect(bungee.getTranslation("lost_connection"));
-			}
-			// Call ServerDisconnectEvent
-			bungee.getPluginManager().callEvent(new ServerDisconnectEvent(user, server.getInfo()));
-		} else {
-			// Otherwise, reconnect the User if he is still online.
-			Reconnect.getInstance().reconnectIfOnline(user, server);
-		}
-	}
-
-	@Override
 	public void handle(Kick kick) throws Exception {
 		// This method is called whenever a Kick-Packet is sent from the Minecraft Server to the Minecraft Client.
 
@@ -105,8 +74,22 @@ public class ReconnectBridge extends DownstreamBridge {
 		if (event.isCancelled() && event.getCancelServer() != null) {
 			user.connectNow(event.getCancelServer());
 		} else {
+			String kickMessage = ChatColor.stripColor(BaseComponent.toLegacyText(ComponentSerializer.parse(kick.getMessage()))); // needs to be parsed like that...
+			// doReconnect indicates whether the player should be reconnected or not after he has been kicked. Only if the kick reason matches the one that has been
+			// pre-defined on the config, we allow him to reconnect.
+			boolean doReconnect = false;
+			if (Reconnect.getInstance().getShutdownMessage() != null && Reconnect.getInstance().getShutdownMessage().equals(kickMessage)) {
+				doReconnect = true;
+			} else if (Reconnect.getInstance().getShutdownMessage() == null && Reconnect.getInstance().getShutdownPattern() != null) {
+				try {
+					doReconnect = Reconnect.getInstance().getShutdownPattern().matcher(kickMessage).matches();
+				} catch (Exception e) {
+					Reconnect.getInstance().getLogger().warning("Could not match shutdown-pattern " + Reconnect.getInstance().getShutdownPattern().pattern());
+				}
+			}
+
 			// As always, we fire a ServerReconnectEvent and give plugins the possibility to cancel server reconnecting.
-			if (!Reconnect.getInstance().fireServerReconnectEvent(user, server)) {
+			if (!doReconnect || !Reconnect.getInstance().fireServerReconnectEvent(user, server)) {
 				// Invoke default behaviour if event has been cancelled and disconnect the player.
 				user.disconnect0(event.getKickReasonComponent());
 			} else {
