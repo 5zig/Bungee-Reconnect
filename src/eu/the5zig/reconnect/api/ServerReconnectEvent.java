@@ -32,7 +32,7 @@ public class ServerReconnectEvent extends Event {
 	}
 
 	public String toString() {
-		return "ServerReConnectEvent(player=" + this.getPlayer() + ", target=" + this.getTarget() + ", cancelled=" + this.isCancelled() + ")";
+		return "ServerReconnectEvent(player=" + this.getPlayer() + ", target=" + this.getTarget() + ", cancelled=" + this.isCancelled() + ")";
 	}
 
 }
