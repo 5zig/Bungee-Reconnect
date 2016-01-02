@@ -1,7 +1,9 @@
 package eu.the5zig.reconnect;
 
+import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+
 import eu.the5zig.reconnect.api.ServerReconnectEvent;
 import eu.the5zig.reconnect.net.ReconnectBridge;
 import net.md_5.bungee.ServerConnection;
@@ -27,8 +29,6 @@ import java.util.regex.Pattern;
 
 public class Reconnect extends Plugin implements Listener {
 
-	private static Reconnect instance;
-
 	private String reconnectingTitle = "&7Reconnecting{%dots%}";
 	private String reconnectingActionBar = "&a&lPlease do not leave! &7Reconnecting to server{%dots%}";
 	private String connectingTitle = "&aConnecting..";
@@ -49,12 +49,10 @@ public class Reconnect extends Plugin implements Listener {
 
 	@Override
 	public void onEnable() {
-		instance = this;
-
 		// register Listener
 		getProxy().getPluginManager().registerListener(this, this);
 
-		// load config
+		// load Configuration
 		loadConfig();
 	}
 
@@ -90,7 +88,7 @@ public class Reconnect extends Plugin implements Listener {
 				reconnectTimeout = Math.max(configuration.getInt("reconnect-timeout", reconnectTimeout), 1000);
 				ignoredServers = configuration.getStringList("ignored-servers");
 				String shutdownText = configuration.getString("shutdown.text");
-				if (shutdownText == null || shutdownText.isEmpty()) {
+				if (Strings.isNullOrEmpty(shutdownText)) {
 					shutdownMessage = null;
 					shutdownPattern = null;
 				} else if (!configuration.getBoolean("shutdown.regex")) {
@@ -135,7 +133,7 @@ public class Reconnect extends Plugin implements Listener {
 		ServerConnection server = user.getServer();
 		ChannelWrapper ch = server.getCh();
 
-		ReconnectBridge bridge = new ReconnectBridge(bungee, user, server);
+		ReconnectBridge bridge = new ReconnectBridge(this, bungee, user, server);
 		ch.getHandle().pipeline().get(HandlerBoss.class).setHandler(bridge);
 
 		// Cancel the reconnect task (if any exist) and clear title and action bar.
@@ -195,7 +193,7 @@ public class Reconnect extends Plugin implements Listener {
 	private void reconnect(UserConnection user, ServerConnection server) {
 		ReconnectTask reconnectTask = reconnectTasks.get(user.getUniqueId());
 		if (reconnectTask == null) {
-			reconnectTasks.put(user.getUniqueId(), reconnectTask = new ReconnectTask(getProxy(), user, server));
+			reconnectTasks.put(user.getUniqueId(), reconnectTask = new ReconnectTask(this, getProxy(), user, server));
 		}
 		reconnectTask.tryReconnect();
 	}
@@ -264,13 +262,6 @@ public class Reconnect extends Plugin implements Listener {
 
 	public Pattern getShutdownPattern() {
 		return shutdownPattern;
-	}
-
-	/**
-	 * @return the current instance of this Plugin.
-	 */
-	public static Reconnect getInstance() {
-		return instance;
 	}
 
 }

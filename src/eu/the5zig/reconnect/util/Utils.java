@@ -14,11 +14,11 @@ public class Utils {
 	 * @param time     The amount of time the task should be scheduled.
 	 * @param timeUnit The {@link TimeUnit} of the time parameter.
 	 */
-	public static void scheduleAsync(final Runnable runnable, long time, TimeUnit timeUnit) {
-		ProxyServer.getInstance().getScheduler().schedule(Reconnect.getInstance(), new Runnable() {
+	public static void scheduleAsync(final Reconnect instance, final Runnable runnable, long time, TimeUnit timeUnit) {
+		ProxyServer.getInstance().getScheduler().schedule(instance, new Runnable() {
 			@Override
 			public void run() {
-				ProxyServer.getInstance().getScheduler().runAsync(Reconnect.getInstance(), runnable);
+				ProxyServer.getInstance().getScheduler().runAsync(instance, runnable);
 			}
 		}, time, timeUnit);
 	}

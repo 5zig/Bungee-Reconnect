@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.the5zig</groupId>
 	<artifactId>reconnect</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>jar</packaging>
 	<name>Bungee-Reconnect</name>
 	<description>A simple BungeeCord-Plugin that automatically tries to reconnect all players whenever a server restarts.</description>

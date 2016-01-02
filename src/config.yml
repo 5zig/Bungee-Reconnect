@@ -4,7 +4,7 @@
 # The current version of this configuration. Do NOT change this value!
 # If the plugin uses a more recent config version, this config gets replaced by it
 # while a backup of the old config will be kept as "config.old.yml".
-version: 1
+version: 2
 
 # The text that should be displayed, when the plugin is trying to reconnect a player.
 # Leave empty if you don't wish any title or action bar message to be displayed.
@@ -54,4 +54,5 @@ shutdown:
   # or not.
 
   text: "Server closed"
-  regex: "false"
+  regex: false
+  
