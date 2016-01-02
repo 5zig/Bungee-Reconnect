@@ -55,3 +55,4 @@ shutdown:
 
   text: "Server closed"
   regex: false
+  
