@@ -42,6 +42,8 @@ public class ReconnectBridge extends DownstreamBridge {
 			// do not perform any actions if the user has already moved
 			return;
 		}
+		// setObsolete so that DownstreamBridge.disconnected(ChannelWrapper) won't be called.
+		server.setObsolete(true);
 
 		// Fire ServerReconnectEvent and give plugins the possibility to cancel server reconnecting.
 		if (!Reconnect.getInstance().fireServerReconnectEvent(user, server)) {
@@ -49,7 +51,6 @@ public class ReconnectBridge extends DownstreamBridge {
 
 			ServerInfo def = bungee.getServerInfo(user.getPendingConnection().getListener().getFallbackServer());
 			if (server.getInfo() != def) {
-				server.setObsolete(true);
 				user.connectNow(def);
 				user.sendMessage(bungee.getTranslation("server_went_down"));
 			} else {
