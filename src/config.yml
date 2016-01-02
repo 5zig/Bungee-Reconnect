@@ -54,4 +54,4 @@ shutdown:
   # or not.
 
   text: "Server closed"
-  regex: "false"
+  regex: false
