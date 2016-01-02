@@ -21,12 +21,14 @@ import net.md_5.bungee.protocol.packet.Kick;
  */
 public class ReconnectBridge extends DownstreamBridge {
 
+	private final Reconnect reconnect;
 	private final ProxyServer bungee;
 	private final UserConnection user;
 	private final ServerConnection server;
 
-	public ReconnectBridge(ProxyServer bungee, UserConnection user, ServerConnection server) {
+	public ReconnectBridge(Reconnect reconnect, ProxyServer bungee, UserConnection user, ServerConnection server) {
 		super(bungee, user, server);
+        this.reconnect = reconnect;
 		this.bungee = bungee;
 		this.user = user;
 		this.server = server;
@@ -46,7 +48,7 @@ public class ReconnectBridge extends DownstreamBridge {
 		server.setObsolete(true);
 
 		// Fire ServerReconnectEvent and give plugins the possibility to cancel server reconnecting.
-		if (!Reconnect.getInstance().fireServerReconnectEvent(user, server)) {
+		if (!reconnect.fireServerReconnectEvent(user, server)) {
 			// Invoke default behaviour if event has been cancelled.
 
 			ServerInfo def = bungee.getServerInfo(user.getPendingConnection().getListener().getFallbackServer());
@@ -58,7 +60,7 @@ public class ReconnectBridge extends DownstreamBridge {
 			}
 		} else {
 			// Otherwise, reconnect the User if he is still online.
-			Reconnect.getInstance().reconnectIfOnline(user, server);
+            reconnect.reconnectIfOnline(user, server);
 		}
 	}
 
@@ -78,24 +80,24 @@ public class ReconnectBridge extends DownstreamBridge {
 			String kickMessage = ChatColor.stripColor(BaseComponent.toLegacyText(ComponentSerializer.parse(kick.getMessage()))); // needs to be parsed like that...
 			// doReconnect indicates whether the player should be reconnected or not after he has been kicked. Only if the kick reason matches the one that has been
 			// pre-defined on the config, we allow him to reconnect.
-			boolean doReconnect = false;
-			if (Reconnect.getInstance().getShutdownMessage() != null && Reconnect.getInstance().getShutdownMessage().equals(kickMessage)) {
-				doReconnect = true;
-			} else if (Reconnect.getInstance().getShutdownMessage() == null && Reconnect.getInstance().getShutdownPattern() != null) {
-				try {
-					doReconnect = Reconnect.getInstance().getShutdownPattern().matcher(kickMessage).matches();
-				} catch (Exception e) {
-					Reconnect.getInstance().getLogger().warning("Could not match shutdown-pattern " + Reconnect.getInstance().getShutdownPattern().pattern());
-				}
-			}
+			boolean doReconnect;
+            if(reconnect.getShutdownMessage() == null || reconnect.getShutdownMessage().isEmpty()) {
+                doReconnect = true;
+            } else {
+                if(reconnect.isRegex()) {
+                    doReconnect = kickMessage.matches(reconnect.getShutdownMessage());
+                } else {
+                    doReconnect = kickMessage.equals(reconnect.getShutdownMessage());
+                }
+            }
 
 			// As always, we fire a ServerReconnectEvent and give plugins the possibility to cancel server reconnecting.
-			if (!doReconnect || !Reconnect.getInstance().fireServerReconnectEvent(user, server)) {
+			if (!doReconnect || !reconnect.fireServerReconnectEvent(user, server)) {
 				// Invoke default behaviour if event has been cancelled and disconnect the player.
 				user.disconnect0(event.getKickReasonComponent());
 			} else {
 				// Otherwise, reconnect the User if he is still online.
-				Reconnect.getInstance().reconnectIfOnline(user, server);
+				reconnect.reconnectIfOnline(user, server);
 			}
 		}
 		server.setObsolete(true);

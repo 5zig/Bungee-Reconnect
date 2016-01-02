@@ -18,16 +18,17 @@ import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.HandlerBoss;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 public class Reconnect extends Plugin implements Listener {
-
-	private static Reconnect instance;
 
 	private String reconnectingTitle = "&7Reconnecting{%dots%}";
 	private String reconnectingActionBar = "&a&lPlease do not leave! &7Reconnecting to server{%dots%}";
@@ -40,7 +41,7 @@ public class Reconnect extends Plugin implements Listener {
 	private int reconnectTimeout = 5000;
 	private List<String> ignoredServers = new ArrayList<>();
 	private String shutdownMessage = "Server closed";
-	private Pattern shutdownPattern = null;
+	private boolean regex;
 
 	/**
 	 * A HashMap containing all reconnect tasks.
@@ -49,8 +50,6 @@ public class Reconnect extends Plugin implements Listener {
 
 	@Override
 	public void onEnable() {
-		instance = this;
-
 		// register Listener
 		getProxy().getPluginManager().registerListener(this, this);
 
@@ -89,20 +88,8 @@ public class Reconnect extends Plugin implements Listener {
 				reconnectMillis = Math.max(configuration.getInt("reconnect-time", reconnectMillis), 0);
 				reconnectTimeout = Math.max(configuration.getInt("reconnect-timeout", reconnectTimeout), 1000);
 				ignoredServers = configuration.getStringList("ignored-servers");
-				String shutdownText = configuration.getString("shutdown.text");
-				if (shutdownText == null || shutdownText.isEmpty()) {
-					shutdownMessage = null;
-					shutdownPattern = null;
-				} else if (!configuration.getBoolean("shutdown.regex")) {
-					shutdownMessage = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', shutdownText)); // strip all color codes
-				} else {
-					try {
-						shutdownPattern = Pattern.compile(shutdownText);
-						shutdownMessage = null;
-					} catch (Exception e) {
-						getLogger().warning("Could not compile shutdown regex! Please check your config! Using default shutdown message...");
-					}
-				}
+				shutdownMessage = configuration.getString("shutdown.text");
+				regex = configuration.getBoolean("shutdown.regex");
 			} else {
 				saveDefaultConfig(configFile);
 			}
@@ -135,7 +122,7 @@ public class Reconnect extends Plugin implements Listener {
 		ServerConnection server = user.getServer();
 		ChannelWrapper ch = server.getCh();
 
-		ReconnectBridge bridge = new ReconnectBridge(bungee, user, server);
+		ReconnectBridge bridge = new ReconnectBridge(this, bungee, user, server);
 		ch.getHandle().pipeline().get(HandlerBoss.class).setHandler(bridge);
 
 		// Cancel the reconnect task (if any exist) and clear title and action bar.
@@ -195,7 +182,7 @@ public class Reconnect extends Plugin implements Listener {
 	private void reconnect(UserConnection user, ServerConnection server) {
 		ReconnectTask reconnectTask = reconnectTasks.get(user.getUniqueId());
 		if (reconnectTask == null) {
-			reconnectTasks.put(user.getUniqueId(), reconnectTask = new ReconnectTask(getProxy(), user, server));
+			reconnectTasks.put(user.getUniqueId(), reconnectTask = new ReconnectTask(this, getProxy(), user, server));
 		}
 		reconnectTask.tryReconnect();
 	}
@@ -262,15 +249,7 @@ public class Reconnect extends Plugin implements Listener {
 		return shutdownMessage;
 	}
 
-	public Pattern getShutdownPattern() {
-		return shutdownPattern;
-	}
-
-	/**
-	 * @return the current instance of this Plugin.
-	 */
-	public static Reconnect getInstance() {
-		return instance;
-	}
-
+    public boolean isRegex() {
+        return regex;
+    }
 }
