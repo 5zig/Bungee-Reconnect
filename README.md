@@ -17,7 +17,7 @@ Features
 - Send titles and action bar messages (+ animated dots variable) to the players while they're waiting for the reconnect or if they got moved to the fallback server.
 - Configure servers that are to be ignored by this plugin, custom messages, maximum amount of retries and many other things!
 - Compatible with other BungeeCord plugins - its behavior isn't supposed to break anything at all!
-- Provides an for plugin developers.
+- Provides an API for plugin developers.
 
 
 API
@@ -26,7 +26,7 @@ Bungee-Reconnect provides a [**ServerReconnectEvent**](src/eu/the5zig/reconnect/
 If you're a developer and want to cancel the reconnect-process for any reason, you can just cancel this event.
 
 
-Other..
+Other
 ------
 Officially tested with **BungeeCord Build #1093** and **Spigot 1.8.8-R0.1-SNAPSHOT**.
 If you encounter any problems, please first make sure you update BungeeCord and Spigot before creating an issue report.
@@ -34,7 +34,7 @@ Under certain circumstances, this plugin might work with older versions, but we 
 
 
 
-Useful Links..
+Useful Links
 ------
 - [BungeeCord](https://www.spigotmc.org/wiki/bungeecord/)
 - [Plugin Page](https://www.spigotmc.org/resources/bungee-reconnect.16429/)
